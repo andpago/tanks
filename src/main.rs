@@ -1,3 +1,8 @@
+mod vm;
+
+use vm::VirtualMachine;
+
 fn main() {
-    println!("Hello, world!");
+    let v = VirtualMachine::new(vec!["Hello".into(), "World".into()]);
+    println!("Hello, world! {:?}", v);
 }
