@@ -1,15 +1,16 @@
-use crate::vm::memory::Cell;
+use crate::vm::memory::{Cell, Memory};
 use crate::vm::program::Action::{Move, Rotate, Fire};
 use crate::vm::program::Direction::{Left, Right};
-use crate::vm::program::Command::Halt;
+use crate::vm::program::Command::{Halt, LoadA, LoadB, LoadAction};
 
-
+#[derive(Debug)]
 pub enum Direction {
     Left,
     Right
 }
 
 // Actions will be placed into the action register
+#[derive(Debug)]
 pub enum Action {
     Move,
     Rotate(Direction),
@@ -52,6 +53,18 @@ pub enum Command {
 impl Into<u8> for Command {
     fn into(self: Self) -> u8 {
         self as u8
+    }
+}
+
+impl Command {
+    pub fn from_cell(bt: &Cell) -> Option<Command> {
+        match bt {
+            0 => Some(LoadA),
+            1 => Some(LoadB),
+            2 => Some(LoadAction),
+            3 => Some(Halt),
+            _ => None
+        }
     }
 }
 

@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 use crate::vm::geom::Coords;
 use crate::vm::memory::Memory;
-use crate::vm::program::Program;
+use crate::vm::program::{Program, Action, Command};
 
 mod memory;
 mod geom;
@@ -44,5 +44,19 @@ impl VirtualMachine {
         }
 
         Err(())
+    }
+
+    pub fn turn(self: &Self, program: &Program) -> Option<Action> {
+        let (mut reg_a, mut reg_b, mut reg_action) = (0, 0, 0);
+        let mut cnt = 0;
+
+        loop {
+            let cmd = &program[cnt];
+            let command = Command::from_cell(cmd);
+
+            break
+        }
+
+        None
     }
 }
