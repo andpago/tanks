@@ -2,12 +2,14 @@ use std::fmt::Debug;
 use crate::vm::geom::Coords;
 use crate::vm::memory::Memory;
 use crate::vm::program::{Program, Action, Command};
-use crate::vm::RuntimeErr::{PtrOutOfRange, InvalidAction, UnknownCommand};
+use crate::vm::RuntimeErr::{PtrOutOfRange, InvalidAction, UnknownCommand, OutOfTime};
 
 mod memory;
 mod geom;
 pub mod program;
 
+
+const MAX_STEPS: i64 = 256;
 
 #[derive(Debug)]
 pub struct VirtualMachine {
@@ -25,7 +27,8 @@ pub struct VirtualMachine {
 pub enum RuntimeErr {
     PtrOutOfRange,
     InvalidAction,
-    UnknownCommand
+    UnknownCommand,
+    OutOfTime
 }
 
 impl VirtualMachine {
@@ -63,10 +66,16 @@ impl VirtualMachine {
         let mut reg_action = 0;
 
         let mut cnt = 0;
+        let mut time = 0;
 
         let mem = &self.memory[idx];
 
         loop {
+            time += 1;
+            if time > MAX_STEPS {
+                return Err(OutOfTime);
+            }
+
             let cmd = match mem.get(cnt) {Some(x) => x, None => {return Err(PtrOutOfRange)}};
             cnt += INC;
 
