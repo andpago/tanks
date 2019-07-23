@@ -4,7 +4,7 @@ use crate::vm::geom::{Coords, Direction};
 pub struct Tank {
     pub pos: Coords,
     pub dir: Direction,
-    pub hp: i64
+    pub hp: i64,
 }
 
 const MAX_HP: i64 = 100;
@@ -14,7 +14,7 @@ impl Tank {
         Tank {
             pos: Coords { x: 0, y: 0 },
             dir: Direction::Right,
-            hp: MAX_HP
+            hp: MAX_HP,
         }
     }
 

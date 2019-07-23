@@ -1,16 +1,15 @@
-use std::fmt::Debug;
+use crate::num_traits::{FromPrimitive, ToPrimitive};
 use crate::vm::geom::Coords;
 use crate::vm::memory::Memory;
-use crate::vm::program::{Program, Action, Command};
-use crate::vm::RuntimeErr::{PtrOutOfRange, InvalidAction, UnknownCommand, OutOfTime};
+use crate::vm::program::{Action, Command, Program};
 use crate::vm::tank::Tank;
-use crate::num_traits::{FromPrimitive, ToPrimitive};
+use crate::vm::RuntimeErr::{InvalidAction, OutOfTime, PtrOutOfRange, UnknownCommand};
+use std::fmt::Debug;
 
+pub mod geom;
 mod memory;
-mod geom;
 pub mod program;
 mod tank;
-
 
 const MAX_STEPS: i64 = 256;
 
@@ -28,7 +27,7 @@ pub enum RuntimeErr {
     PtrOutOfRange,
     InvalidAction,
     UnknownCommand(u8),
-    OutOfTime
+    OutOfTime,
 }
 
 #[derive(Debug)]
@@ -45,12 +44,17 @@ impl Registers {
             a: 0,
             b: 0,
             instruction: 0,
-            action: 0
+            action: 0,
         }
     }
 }
 
-fn execute_command(regs: &mut Registers, thing: Command, data: u8, memory: &mut Memory) -> Result<bool, RuntimeErr> {
+fn execute_command(
+    regs: &mut Registers,
+    thing: Command,
+    data: u8,
+    memory: &mut Memory,
+) -> Result<bool, RuntimeErr> {
     match thing {
         Command::LoadDirectA => {
             regs.a = data;
@@ -60,47 +64,33 @@ fn execute_command(regs: &mut Registers, thing: Command, data: u8, memory: &mut 
         }
         Command::Halt => {
             return Ok(true);
-        },
+        }
         Command::LoadDirectAction => {
             regs.action = data;
         }
         Command::LogicNegateA => {
             regs.a = match regs.a {
                 0 => 1,
-                _ => 0
+                _ => 0,
             }
         }
-        Command::Add => {
-            regs.a = regs.a + regs.b
-        }
-        Command::SaveA => {
-            match memory.set_item(data as usize, regs.a) {
-                Err(_) => {
-                    return Err(PtrOutOfRange)
-                }
-                Ok(_) => {}
+        Command::Add => regs.a = regs.a + regs.b,
+        Command::SaveA => match memory.set_item(data as usize, regs.a) {
+            Err(_) => return Err(PtrOutOfRange),
+            Ok(_) => {}
+        },
+        Command::LoadA => match memory.get_item(data as usize) {
+            Ok(saved) => {
+                regs.a = saved;
             }
-        }
-        Command::LoadA => {
-            match memory.get_item(data as usize) {
-                Ok(saved) => {
-                    regs.a = saved;
-                },
-                Err(_) => {
-                    return Err(PtrOutOfRange)
-                }
+            Err(_) => return Err(PtrOutOfRange),
+        },
+        Command::LoadB => match memory.get_item(data as usize) {
+            Ok(saved) => {
+                regs.b = saved;
             }
-        }
-        Command::LoadB => {
-            match memory.get_item(data as usize) {
-                Ok(saved) => {
-                    regs.b = saved;
-                },
-                Err(_) => {
-                    return Err(PtrOutOfRange)
-                }
-            }
-        }
+            Err(_) => return Err(PtrOutOfRange),
+        },
         Command::SwapAB => {
             let tmp = regs.b;
             regs.b = regs.a;
@@ -108,6 +98,18 @@ fn execute_command(regs: &mut Registers, thing: Command, data: u8, memory: &mut 
         }
         Command::JumpA => {
             regs.instruction = regs.a;
+        }
+        Command::JumpBIfAPos => {
+            if regs.a > 0 {
+                regs.instruction = regs.b;
+            }
+        },
+        Command::Sub => {
+            if regs.a >= regs.b {
+                regs.a -= regs.b;
+            } else {
+                regs.a = 0;
+            }
         }
     };
     Ok(false)
@@ -128,28 +130,32 @@ impl VirtualMachine {
     fn exec_action(self: &mut Self, action: Action, player: usize) {
         match action {
             Action::Move => {
-                println!("player {} moves from {:?} to the {:?}", player, &self.tanks[player].pos, &self.tanks[player].dir);
+                println!(
+                    "player {} moves from {:?} to the {:?}",
+                    player, &self.tanks[player].pos, &self.tanks[player].dir
+                );
                 self.tanks[player].step();
-            },
+            }
             Action::Rotate(rot) => {
+                println!("player {} rotates to the {:?}", player, rot);
                 self.tanks[player].dir = self.tanks[player].dir.rotate(&rot);
-            },
+            }
             Action::Fire => {
                 println!("player {} fires!", player);
-            },
+            }
         }
     }
 
-    pub fn input(self: &mut Self, program: Program, player: String) -> Result<(), ()> {
+    pub fn input(self: &mut Self, program: Program, player: String) -> Result<(), &'static str> {
         for i in 0..self.programs.len() {
             if self.players[i] == player {
                 self.memory[i].set(&program)?;
                 self.programs[i] = program;
-                return Ok(())
+                return Ok(());
             }
         }
 
-        Err(())
+        Err("player not found")
     }
 
     pub fn decide_action(self: &mut Self, idx: usize) -> Result<Action, RuntimeErr> {
@@ -168,37 +174,35 @@ impl VirtualMachine {
 
             let cmd = match mem.get_item(regs.instruction as usize) {
                 Ok(x) => x,
-                Err(_) => {return Err(PtrOutOfRange)}
+                Err(_) => return Err(PtrOutOfRange),
             };
 
             let data = match mem.get_item(regs.instruction as usize + 1) {
                 Ok(x) => x,
-                Err(_) => {return Err(PtrOutOfRange)}
+                Err(_) => return Err(PtrOutOfRange),
             };
             let command = Command::from_u8(cmd);
+
+//            println!("{:?} {}, {:?}", command, data, regs);
 
             regs.instruction += INC;
 
             match command {
                 None => {
                     return Err(UnknownCommand(cmd));
-                },
+                }
                 Some(thing) => {
                     let stop = execute_command(&mut regs, thing, data, mem)?;
                     if stop {
                         break;
                     }
-                },
+                }
             };
         }
 
         match Action::from_u8(regs.action) {
-            Ok(action) => {
-                Ok(action)
-            }
-            Err(_) => {
-                Err(InvalidAction)
-            }
+            Ok(action) => Ok(action),
+            Err(_) => Err(InvalidAction),
         }
     }
 

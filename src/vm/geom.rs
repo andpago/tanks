@@ -1,8 +1,7 @@
-#[derive(Debug)]
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Coords {
     pub x: i64,
-    pub y: i64
+    pub y: i64,
 }
 
 #[derive(Clone, Debug)]
@@ -20,7 +19,7 @@ impl From<u8> for Direction {
             1 => Direction::Right,
             2 => Direction::Down,
             3 => Direction::Left,
-            _ => panic!("cannot cast {} to Direction", u)
+            _ => panic!("cannot cast {} to Direction", u),
         }
     }
 }
@@ -49,10 +48,10 @@ impl Direction {
 impl Coords {
     pub fn shift(self: &mut Self, dir: &Direction) {
         match dir {
-            Direction::Right => {self.x += 1},
-            Direction::Left => {self.x -= 1},
-            Direction::Up => {self.y += 1},
-            Direction::Down => {self.y -= 1},
+            Direction::Right => self.x += 1,
+            Direction::Left => self.x -= 1,
+            Direction::Up => self.y += 1,
+            Direction::Down => self.y -= 1,
         }
     }
 }

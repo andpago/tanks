@@ -1,18 +1,18 @@
-use std::fmt::Debug;
 use core::fmt;
+use std::fmt::Debug;
 
 // bot memory size in bytes
-pub const MEMSIZE: usize = 16;
+pub const MEMSIZE: usize = 256;
 
 #[derive(Clone)]
 pub struct Memory {
-    memory: [u8; MEMSIZE]
+    memory: [u8; MEMSIZE],
 }
 
 impl Memory {
     pub fn new() -> Self {
         Memory {
-            memory: [0; MEMSIZE]
+            memory: [0; MEMSIZE],
         }
     }
 
@@ -28,9 +28,9 @@ impl Memory {
         }
     }
 
-    pub fn set(self: &mut Self, data: &Vec<u8>) -> Result<(), ()> {
+    pub fn set(self: &mut Self, data: &Vec<u8>) -> Result<(), &'static str> {
         if data.len() > MEMSIZE {
-            return Err(())
+            return Err("out of memory");
         }
 
         for i in 0..data.len() {
@@ -42,7 +42,7 @@ impl Memory {
 
     pub fn set_item(self: &mut Self, idx: usize, data: u8) -> Result<(), ()> {
         if idx >= MEMSIZE {
-            return Err(())
+            return Err(());
         }
 
         self.memory[idx] = data;
