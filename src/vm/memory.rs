@@ -20,11 +20,11 @@ impl Memory {
         self.memory.len()
     }
 
-    pub fn get(self: &Self, idx: usize) -> Option<u8> {
+    pub fn get_item(self: &Self, idx: usize) -> Result<u8, ()> {
         if idx >= MEMSIZE {
-            None
+            Err(())
         } else {
-            Some(self.memory[idx])
+            Ok(self.memory[idx])
         }
     }
 
@@ -37,6 +37,15 @@ impl Memory {
             self.memory[i] = data[i];
         }
 
+        Ok(())
+    }
+
+    pub fn set_item(self: &mut Self, idx: usize, data: u8) -> Result<(), ()> {
+        if idx >= MEMSIZE {
+            return Err(())
+        }
+
+        self.memory[idx] = data;
         Ok(())
     }
 }

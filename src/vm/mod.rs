@@ -4,6 +4,7 @@ use crate::vm::memory::Memory;
 use crate::vm::program::{Program, Action, Command};
 use crate::vm::RuntimeErr::{PtrOutOfRange, InvalidAction, UnknownCommand, OutOfTime};
 use crate::vm::tank::Tank;
+use crate::num_traits::{FromPrimitive, ToPrimitive};
 
 mod memory;
 mod geom;
@@ -22,10 +23,11 @@ pub struct VirtualMachine {
 }
 
 #[derive(Debug)]
+
 pub enum RuntimeErr {
     PtrOutOfRange,
     InvalidAction,
-    UnknownCommand,
+    UnknownCommand(u8),
     OutOfTime
 }
 
@@ -48,7 +50,7 @@ impl Registers {
     }
 }
 
-fn execute_command(regs: &mut Registers, thing: Command, data: u8) -> bool {
+fn execute_command(regs: &mut Registers, thing: Command, data: u8, memory: &mut Memory) -> Result<bool, RuntimeErr> {
     match thing {
         Command::LoadDirectA => {
             regs.a = data;
@@ -57,7 +59,7 @@ fn execute_command(regs: &mut Registers, thing: Command, data: u8) -> bool {
             regs.b = data;
         }
         Command::Halt => {
-            return true;
+            return Ok(true);
         },
         Command::LoadDirectAction => {
             regs.action = data;
@@ -72,19 +74,43 @@ fn execute_command(regs: &mut Registers, thing: Command, data: u8) -> bool {
             regs.a = regs.a + regs.b
         }
         Command::SaveA => {
-
+            match memory.set_item(data as usize, regs.a) {
+                Err(_) => {
+                    return Err(PtrOutOfRange)
+                }
+                Ok(_) => {}
+            }
         }
         Command::LoadA => {
-
+            match memory.get_item(data as usize) {
+                Ok(saved) => {
+                    regs.a = saved;
+                },
+                Err(_) => {
+                    return Err(PtrOutOfRange)
+                }
+            }
         }
-        Command::LoadB => {}
+        Command::LoadB => {
+            match memory.get_item(data as usize) {
+                Ok(saved) => {
+                    regs.b = saved;
+                },
+                Err(_) => {
+                    return Err(PtrOutOfRange)
+                }
+            }
+        }
         Command::SwapAB => {
             let tmp = regs.b;
             regs.b = regs.a;
             regs.a = tmp;
         }
+        Command::JumpA => {
+            regs.instruction = regs.a;
+        }
     };
-    false
+    Ok(false)
 }
 
 impl VirtualMachine {
@@ -132,7 +158,7 @@ impl VirtualMachine {
         let mut regs = Registers::new();
         let mut time = 0;
 
-        let mem = &self.memory[idx];
+        let mut mem = &mut self.memory[idx];
 
         loop {
             time += 1;
@@ -140,25 +166,25 @@ impl VirtualMachine {
                 return Err(OutOfTime);
             }
 
-            let cmd = match mem.get(regs.instruction as usize) {
-                Some(x) => x,
-                None => {return Err(PtrOutOfRange)}
+            let cmd = match mem.get_item(regs.instruction as usize) {
+                Ok(x) => x,
+                Err(_) => {return Err(PtrOutOfRange)}
             };
 
-            let data = match mem.get(regs.instruction as usize + 1) {
-                Some(x) => x,
-                None => {return Err(PtrOutOfRange)}
+            let data = match mem.get_item(regs.instruction as usize + 1) {
+                Ok(x) => x,
+                Err(_) => {return Err(PtrOutOfRange)}
             };
-            let command = Command::from_u8(&cmd);
+            let command = Command::from_u8(cmd);
 
             regs.instruction += INC;
 
             match command {
                 None => {
-                    return Err(UnknownCommand);
+                    return Err(UnknownCommand(cmd));
                 },
                 Some(thing) => {
-                    let stop = execute_command(&mut regs, thing, data);
+                    let stop = execute_command(&mut regs, thing, data, mem)?;
                     if stop {
                         break;
                     }

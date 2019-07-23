@@ -2,6 +2,7 @@ use crate::vm::program::Action::{Move, Rotate, Fire};
 use crate::vm::program::Direction::{Left, Right};
 use crate::vm::program::Command::{Halt, LoadDirectA, LoadDirectB, LoadDirectAction};
 use crate::vm::geom::Direction;
+use crate::num_traits::{FromPrimitive, ToPrimitive};
 
 // Actions will be placed into the action register
 #[derive(Debug)]
@@ -37,6 +38,7 @@ impl Action {
 
 #[derive(Copy, Clone)]
 #[derive(Debug)]
+#[derive(Primitive)]
 pub enum Command {
     LoadDirectA = 0, // loads <arg> into a
     LoadDirectB = 1, // loads <arg> into b
@@ -47,25 +49,8 @@ pub enum Command {
     SaveA = 6, // saves a into memory cell at <arg>
     LoadA = 7, // loads value at address <arg> into a
     LoadB = 8, // loads value at address <arg> into b
-    SwapAB = 9, // swaps a and b
-}
-
-impl Into<u8> for Command {
-    fn into(self: Self) -> u8 {
-        self as u8
-    }
-}
-
-impl Command {
-    pub fn from_u8(bt: &u8) -> Option<Command> {
-        match bt {
-            0 => Some(LoadDirectA),
-            1 => Some(LoadDirectB),
-            2 => Some(LoadDirectAction),
-            3 => Some(Halt),
-            _ => None
-        }
-    }
+    SwapAB = 9, // swaps a and b,
+    JumpA = 10, // sets instruction register to the value of a
 }
 
 pub type Program = Vec<u8>;
