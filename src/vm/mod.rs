@@ -50,17 +50,38 @@ impl Registers {
 
 fn execute_command(regs: &mut Registers, thing: Command, data: u8) -> bool {
     match thing {
-        Command::LoadA => {
+        Command::LoadDirectA => {
             regs.a = data;
-        },
-        Command::LoadB => {
+        }
+        Command::LoadDirectB => {
             regs.b = data;
-        },
+        }
         Command::Halt => {
             return true;
         },
-        Command::LoadAction => {
+        Command::LoadDirectAction => {
             regs.action = data;
+        }
+        Command::LogicNegateA => {
+            regs.a = match regs.a {
+                0 => 1,
+                _ => 0
+            }
+        }
+        Command::Add => {
+            regs.a = regs.a + regs.b
+        }
+        Command::SaveA => {
+
+        }
+        Command::LoadA => {
+
+        }
+        Command::LoadB => {}
+        Command::SwapAB => {
+            let tmp = regs.b;
+            regs.b = regs.a;
+            regs.a = tmp;
         }
     };
     false
