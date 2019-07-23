@@ -32,9 +32,9 @@ impl Into<u8> for Action {
 impl Action {
     pub fn from_u8(bt: u8) -> Result<Self, ()> {
         match bt {
-            0 => Ok(Move),
-            1 => Ok(Rotate(Left)),
-            2 => Ok(Rotate(Right)),
+            1 => Ok(Move),
+            2 => Ok(Rotate(Left)),
+            3 => Ok(Rotate(Right)),
             4 => Ok(Fire),
             _ => Err(())
         }

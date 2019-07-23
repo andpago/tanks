@@ -17,10 +17,6 @@ pub struct VirtualMachine {
     player_pos: Vec<Coords>,
     memory: Vec<Memory>,
     programs: Vec<Program>,
-
-    reg_a: u8,
-    reg_b: u8,
-    reg_cnt: u8, // pointer to the next command
 }
 
 #[derive(Debug)]
@@ -53,19 +49,15 @@ impl Registers {
 fn execute_command(regs: &mut Registers, thing: Command, data: u8) -> bool {
     match thing {
         Command::LoadA => {
-            println!("load a {}", data);
             regs.a = data;
         },
         Command::LoadB => {
-            println!("load b {}", data);
             regs.b = data;
         },
         Command::Halt => {
-            println!("halt");
             return true;
         },
         Command::LoadAction => {
-            println!("load action {}", data);
             regs.action = data;
         }
     };
@@ -81,9 +73,6 @@ impl VirtualMachine {
             player_pos: vec![Coords{x: 0, y: 0}; size],
             memory: vec![Memory::new(); size],
             programs: vec![Program::new(); size],
-            reg_a: 0,
-            reg_b: 0,
-            reg_cnt: 0,
         }
     }
 
@@ -117,17 +106,14 @@ impl VirtualMachine {
                 Some(x) => x,
                 None => {return Err(PtrOutOfRange)}
             };
-            regs.instruction += INC;
-
-            if regs.instruction as usize >= mem.len() - 1 {
-                return Err(PtrOutOfRange);
-            }
 
             let data = match mem.get(regs.instruction as usize + 1) {
                 Some(x) => x,
                 None => {return Err(PtrOutOfRange)}
             };
             let command = Command::from_u8(&cmd);
+
+            regs.instruction += INC;
 
             match command {
                 None => {
@@ -148,6 +134,30 @@ impl VirtualMachine {
             }
             Err(_) => {
                 Err(InvalidAction)
+            }
+        }
+    }
+
+    pub fn run(self: &mut Self) {
+        for p in 0..self.players.len() {
+            self.input(self.programs[p.clone()].clone(), self.players[p.clone()].clone());
+        }
+
+        for i in 0..10 {
+            for player in 0..self.players.len() {
+                println!("{:?}", self.memory[player]);
+                let act = self.turn(player);
+                match act {
+                    Ok(action) => {
+                        println!("player {} does {:?}", player, action);
+                        // TODO execute action
+                    }
+                    Err(e) => {
+                        println!("player {} loses with {:?}", player, e);
+                        return;
+                        // TODO: this player loses
+                    }
+                }
             }
         }
     }

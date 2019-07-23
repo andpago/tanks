@@ -14,6 +14,5 @@ fn main() {
 
     println!("Hello, world! {:?}", v);
 
-    let res = v.turn(0);
-    println!("Bot does this: {:?}", res);
+    v.run();
 }
