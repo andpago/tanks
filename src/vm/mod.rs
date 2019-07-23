@@ -31,6 +31,47 @@ pub enum RuntimeErr {
     OutOfTime
 }
 
+#[derive(Debug)]
+pub struct Registers {
+    pub a: u8,
+    pub b: u8,
+    pub instruction: u8,
+    pub action: u8,
+}
+
+impl Registers {
+    pub fn new() -> Self {
+        Registers {
+            a: 0,
+            b: 0,
+            instruction: 0,
+            action: 0
+        }
+    }
+}
+
+fn execute_command(regs: &mut Registers, thing: Command, data: u8) -> bool {
+    match thing {
+        Command::LoadA => {
+            println!("load a {}", data);
+            regs.a = data;
+        },
+        Command::LoadB => {
+            println!("load b {}", data);
+            regs.b = data;
+        },
+        Command::Halt => {
+            println!("halt");
+            return true;
+        },
+        Command::LoadAction => {
+            println!("load action {}", data);
+            regs.action = data;
+        }
+    };
+    false
+}
+
 impl VirtualMachine {
     pub fn new(players: Vec<String>) -> Self {
         let size = players.len();
@@ -59,13 +100,9 @@ impl VirtualMachine {
     }
 
     pub fn turn(self: &mut Self, idx: usize) -> Result<Action, RuntimeErr> {
-        const INC: usize = 2;
+        const INC: u8 = 2;
 
-        let mut reg_a = 0;
-        let mut reg_b = 0;
-        let mut reg_action = 0;
-
-        let mut cnt = 0;
+        let mut regs = Registers::new();
         let mut time = 0;
 
         let mem = &self.memory[idx];
@@ -76,52 +113,36 @@ impl VirtualMachine {
                 return Err(OutOfTime);
             }
 
-            let cmd = match mem.get(cnt) {Some(x) => x, None => {return Err(PtrOutOfRange)}};
-            cnt += INC;
+            let cmd = match mem.get(regs.instruction as usize) {
+                Some(x) => x,
+                None => {return Err(PtrOutOfRange)}
+            };
+            regs.instruction += INC;
 
-            if cnt >= mem.len() - 1 {
+            if regs.instruction as usize >= mem.len() - 1 {
                 return Err(PtrOutOfRange);
             }
 
-            let data = match mem.get(cnt + 1) {Some(x) => x, None => {return Err(PtrOutOfRange)}};
+            let data = match mem.get(regs.instruction as usize + 1) {
+                Some(x) => x,
+                None => {return Err(PtrOutOfRange)}
+            };
             let command = Command::from_u8(&cmd);
-            let mut next: Option<u8> = None;
 
             match command {
                 None => {
                     return Err(UnknownCommand);
                 },
                 Some(thing) => {
-                    match thing {
-                        Command::LoadA => {
-                            println!("load a {}", data);
-                            reg_a = data;
-                        },
-                        Command::LoadB => {
-                            println!("load b {}", data);
-                            reg_b = data;
-                        },
-                        Command::Halt => {
-                            println!("halt");
-                            break;
-                        },
-                        Command::LoadAction => {
-                            println!("load action {}", data);
-                            next = Some(data);
-                        }
-                    };
+                    let stop = execute_command(&mut regs, thing, data);
+                    if stop {
+                        break;
+                    }
                 },
             };
-
-            match next {
-                Some(a) => {
-                    reg_action = a;
-                },
-                None => {}
-            }
         }
 
-        match Action::from_u8(reg_action) {
+        match Action::from_u8(regs.action) {
             Ok(action) => {
                 Ok(action)
             }
