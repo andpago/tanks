@@ -3,12 +3,10 @@ use core::fmt;
 
 // bot memory size in bytes
 pub const MEMSIZE: usize = 128;
-pub type Cell = u8;
-
 
 #[derive(Clone)]
 pub struct Memory {
-    memory: [Cell; MEMSIZE]
+    memory: [u8; MEMSIZE]
 }
 
 impl Memory {
@@ -17,11 +15,23 @@ impl Memory {
             memory: [0; MEMSIZE]
         }
     }
+
+    pub fn len(self: &Self) -> usize {
+        self.memory.len()
+    }
+
+    pub fn get(self: &Self, idx: usize) -> Option<u8> {
+        if idx < 0 || idx >= MEMSIZE {
+            None
+        } else {
+            Some(self.memory[idx])
+        }
+    }
 }
 
 impl Debug for Memory {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let v: Vec<Cell> = self.memory.to_vec();
+        let v: Vec<u8> = self.memory.to_vec();
         v.fmt(f)
     }
 }

@@ -1,4 +1,4 @@
-use crate::vm::memory::{Cell, Memory};
+use crate::vm::memory::{Memory};
 use crate::vm::program::Action::{Move, Rotate, Fire};
 use crate::vm::program::Direction::{Left, Right};
 use crate::vm::program::Command::{Halt, LoadA, LoadB, LoadAction};
@@ -17,8 +17,8 @@ pub enum Action {
     Fire
 }
 
-impl Into<Cell> for Action {
-    fn into(self: Self) -> Cell {
+impl Into<u8> for Action {
+    fn into(self: Self) -> u8 {
         match self {
             Move => 1,
             Action::Rotate(dir) => match dir {
@@ -31,7 +31,7 @@ impl Into<Cell> for Action {
 }
 
 impl Action {
-    pub fn from_cell(bt: Cell) -> Result<Self, ()> {
+    pub fn from_u8(bt: u8) -> Result<Self, ()> {
         match bt {
             0 => Ok(Move),
             1 => Ok(Rotate(Left)),
@@ -57,7 +57,7 @@ impl Into<u8> for Command {
 }
 
 impl Command {
-    pub fn from_cell(bt: &Cell) -> Option<Command> {
+    pub fn from_u8(bt: &u8) -> Option<Command> {
         match bt {
             0 => Some(LoadA),
             1 => Some(LoadB),
