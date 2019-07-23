@@ -1,4 +1,3 @@
-use crate::vm::memory::{Memory};
 use crate::vm::program::Action::{Move, Rotate, Fire};
 use crate::vm::program::Direction::{Left, Right};
 use crate::vm::program::Command::{Halt, LoadA, LoadB, LoadAction};
@@ -43,6 +42,7 @@ impl Action {
 }
 
 #[derive(Copy, Clone)]
+#[derive(Debug)]
 pub enum Command {
     LoadA = 0,
     LoadB = 1,

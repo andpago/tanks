@@ -46,6 +46,7 @@ impl VirtualMachine {
     pub fn input(self: &mut Self, program: Program, player: String) -> Result<(), ()> {
         for i in 0..self.programs.len() {
             if self.players[i] == player {
+                self.memory[i].set(&program)?;
                 self.programs[i] = program;
                 return Ok(())
             }
@@ -55,6 +56,8 @@ impl VirtualMachine {
     }
 
     pub fn turn(self: &mut Self, idx: usize) -> Result<Action, RuntimeErr> {
+        const INC: usize = 2;
+
         let mut reg_a = 0;
         let mut reg_b = 0;
         let mut reg_action = 0;
@@ -64,14 +67,16 @@ impl VirtualMachine {
         let mem = &self.memory[idx];
 
         loop {
+            let cmd = match mem.get(cnt) {Some(x) => x, None => {return Err(PtrOutOfRange)}};
+            cnt += INC;
+
             if cnt >= mem.len() - 1 {
                 return Err(PtrOutOfRange);
             }
 
-            let cmd = match mem.get(cnt) {Some(x) => x, None => {return Err(PtrOutOfRange)}};
             let data = match mem.get(cnt + 1) {Some(x) => x, None => {return Err(PtrOutOfRange)}};
             let command = Command::from_u8(&cmd);
-            let mut next: Option<Action> = None;
+            let mut next: Option<u8> = None;
 
             match command {
                 None => {
@@ -79,31 +84,32 @@ impl VirtualMachine {
                 },
                 Some(thing) => {
                     match thing {
-                        LoadA => {
+                        Command::LoadA => {
+                            println!("load a {}", data);
                             reg_a = data;
                         },
-                        LoadB => {
+                        Command::LoadB => {
+                            println!("load b {}", data);
                             reg_b = data;
                         },
-                        Halt => {
-                            // return
+                        Command::Halt => {
+                            println!("halt");
+                            break;
                         },
-                        LoadAction => {
-                            let action = Action::from_u8(data);
-                            match action {
-                                Ok(ac) => {
-                                    next = Some(ac);
-                                },
-                                Err(_) => {
-                                    return Err(InvalidAction)
-                                }
-                            }
+                        Command::LoadAction => {
+                            println!("load action {}", data);
+                            next = Some(data);
                         }
                     };
                 },
-            }
+            };
 
-            cnt += 2;
+            match next {
+                Some(a) => {
+                    reg_action = a;
+                },
+                None => {}
+            }
         }
 
         match Action::from_u8(reg_action) {

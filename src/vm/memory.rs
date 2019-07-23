@@ -2,7 +2,7 @@ use std::fmt::Debug;
 use core::fmt;
 
 // bot memory size in bytes
-pub const MEMSIZE: usize = 128;
+pub const MEMSIZE: usize = 16;
 
 #[derive(Clone)]
 pub struct Memory {
@@ -21,11 +21,23 @@ impl Memory {
     }
 
     pub fn get(self: &Self, idx: usize) -> Option<u8> {
-        if idx < 0 || idx >= MEMSIZE {
+        if idx >= MEMSIZE {
             None
         } else {
             Some(self.memory[idx])
         }
+    }
+
+    pub fn set(self: &mut Self, data: &Vec<u8>) -> Result<(), ()> {
+        if data.len() > MEMSIZE {
+            return Err(())
+        }
+
+        for i in 0..data.len() {
+            self.memory[i] = data[i];
+        }
+
+        Ok(())
     }
 }
 
