@@ -3,10 +3,12 @@ use crate::vm::geom::Coords;
 use crate::vm::memory::Memory;
 use crate::vm::program::{Program, Action, Command};
 use crate::vm::RuntimeErr::{PtrOutOfRange, InvalidAction, UnknownCommand, OutOfTime};
+use crate::vm::tank::Tank;
 
 mod memory;
 mod geom;
 pub mod program;
+mod tank;
 
 
 const MAX_STEPS: i64 = 256;
@@ -14,7 +16,7 @@ const MAX_STEPS: i64 = 256;
 #[derive(Debug)]
 pub struct VirtualMachine {
     players: Vec<String>,
-    player_pos: Vec<Coords>,
+    tanks: Vec<Tank>,
     memory: Vec<Memory>,
     programs: Vec<Program>,
 }
@@ -70,9 +72,24 @@ impl VirtualMachine {
 
         VirtualMachine {
             players,
-            player_pos: vec![Coords{x: 0, y: 0}; size],
+            tanks: vec![Tank::new(); size],
             memory: vec![Memory::new(); size],
             programs: vec![Program::new(); size],
+        }
+    }
+
+    fn exec_action(self: &mut Self, action: Action, player: usize) {
+        match action {
+            Action::Move => {
+                println!("player {} moves from {:?} to the {:?}", player, &self.tanks[player].pos, &self.tanks[player].dir);
+                self.tanks[player].step();
+            },
+            Action::Rotate(rot) => {
+                self.tanks[player].dir = self.tanks[player].dir.rotate(&rot);
+            },
+            Action::Fire => {
+                println!("player {} fires!", player);
+            },
         }
     }
 
@@ -88,7 +105,7 @@ impl VirtualMachine {
         Err(())
     }
 
-    pub fn turn(self: &mut Self, idx: usize) -> Result<Action, RuntimeErr> {
+    pub fn decide_action(self: &mut Self, idx: usize) -> Result<Action, RuntimeErr> {
         const INC: u8 = 2;
 
         let mut regs = Registers::new();
@@ -139,18 +156,12 @@ impl VirtualMachine {
     }
 
     pub fn run(self: &mut Self) {
-        for p in 0..self.players.len() {
-            self.input(self.programs[p.clone()].clone(), self.players[p.clone()].clone());
-        }
-
-        for i in 0..10 {
+        for _ in 0..10 {
             for player in 0..self.players.len() {
-                println!("{:?}", self.memory[player]);
-                let act = self.turn(player);
+                let act = self.decide_action(player);
                 match act {
                     Ok(action) => {
-                        println!("player {} does {:?}", player, action);
-                        // TODO execute action
+                        self.exec_action(action, player);
                     }
                     Err(e) => {
                         println!("player {} loses with {:?}", player, e);

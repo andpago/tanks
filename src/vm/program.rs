@@ -1,12 +1,7 @@
 use crate::vm::program::Action::{Move, Rotate, Fire};
 use crate::vm::program::Direction::{Left, Right};
 use crate::vm::program::Command::{Halt, LoadA, LoadB, LoadAction};
-
-#[derive(Debug)]
-pub enum Direction {
-    Left,
-    Right
-}
+use crate::vm::geom::Direction;
 
 // Actions will be placed into the action register
 #[derive(Debug)]
@@ -20,9 +15,8 @@ impl Into<u8> for Action {
     fn into(self: Self) -> u8 {
         match self {
             Move => 1,
-            Action::Rotate(dir) => match dir {
-                Left => 2,
-                Right => 3,
+            Action::Rotate(dir) => {
+                dir as u8 + 1
             }
             Fire => 4,
         }
