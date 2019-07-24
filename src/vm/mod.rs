@@ -1,5 +1,5 @@
 use crate::num_traits::{FromPrimitive, ToPrimitive};
-use crate::vm::geom::Coords;
+use crate::vm::geom::{Coords, Direction};
 use crate::vm::memory::Memory;
 use crate::vm::program::{Action, Command, Program};
 use crate::vm::tank::Tank;
@@ -115,6 +115,15 @@ fn execute_command(
     Ok(false)
 }
 
+fn point_in_ray(point: &Coords, start: &Coords, dir: &Direction) -> bool {
+    match dir {
+        Direction::Up => point.x == start.x && point.y > start.y,
+        Direction::Right => point.y == start.y && point.x > start.x,
+        Direction::Down => point.x == start.x && point.y < start.y,
+        Direction::Left => point.y == start.y && point.x < start.x,
+    }
+}
+
 impl VirtualMachine {
     pub fn new(players: Vec<String>) -> Self {
         let size = players.len();
@@ -127,7 +136,10 @@ impl VirtualMachine {
         }
     }
 
-    fn exec_action(self: &mut Self, action: Action, player: usize) {
+    fn exec_action(self: &mut Self, action: &Action, player: usize) {
+        const DAMAGE: i64 = 10;
+
+        let pos = self.tanks[player].pos.clone();
         match action {
             Action::Move => {
                 println!(
@@ -141,7 +153,11 @@ impl VirtualMachine {
                 self.tanks[player].dir = self.tanks[player].dir.rotate(&rot);
             }
             Action::Fire => {
-                println!("player {} fires!", player);
+                for tank in self.tanks.iter_mut() {
+                    if point_in_ray(&pos, &tank.pos, &tank.dir) {
+                        tank.hp -= DAMAGE;
+                    }
+                }
             }
         }
     }
@@ -206,21 +222,68 @@ impl VirtualMachine {
         }
     }
 
-    pub fn run(self: &mut Self) {
-        for _ in 0..10 {
+    pub fn run(self: &mut Self) -> Vec<WinStatus> {
+        const MAX_TURNS: i64 = 10;
+
+        for _ in 0..MAX_TURNS {
+            let mut acts: Vec<Action> = Vec::new();
+
             for player in 0..self.players.len() {
                 let act = self.decide_action(player);
                 match act {
                     Ok(action) => {
-                        self.exec_action(action, player);
+                        acts.push(action);
                     }
                     Err(e) => {
                         println!("player {} loses with {:?}", player, e);
-                        return;
-                        // TODO: this player loses
+                        self.tanks[player].hp = 0;
                     }
                 }
             }
+
+            for (player, action) in acts.iter().enumerate() {
+                if !self.tanks[player].alive() {
+                    continue;
+                }
+                match action {
+                    Action::Rotate(_)| Action::Move => {
+                        self.exec_action(action, player)
+                    }
+                    _ => {}
+                }
+            }
+
+            for (player, action) in acts.iter().enumerate() {
+                if !self.tanks[player].alive() {
+                    continue;
+                }
+                match action {
+                    Action::Fire => {
+                        self.exec_action(action, player)
+                    }
+                    _ => {}
+                }
+            }
         }
+
+        let alive: usize = self.tanks.iter().map(|x|if x.alive(){1}else{0}).sum();
+        let dead: usize = self.tanks.len() - alive;
+
+        if alive == 0 || dead == 0 {
+            return vec![WinStatus::Draw; self.tanks.len()];
+        }
+
+        if alive == 1 {
+            return self.tanks.iter().map(|x|if x.alive() {WinStatus::Won} else {WinStatus::Lost}).collect();
+        }
+
+        self.tanks.iter().map(|x|if x.alive() {WinStatus::Draw} else {WinStatus::Lost}).collect()
     }
+}
+
+#[derive(Clone, Debug)]
+pub enum WinStatus {
+    Won,
+    Lost,
+    Draw
 }

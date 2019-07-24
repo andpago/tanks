@@ -21,4 +21,8 @@ impl Tank {
     pub fn step(self: &mut Self) {
         self.pos.shift(&self.dir);
     }
+
+    pub fn alive(self: &Self) -> bool {
+        self.hp > 0
+    }
 }

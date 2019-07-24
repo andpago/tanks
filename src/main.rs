@@ -42,5 +42,6 @@ fn main() {
 
     println!("Hello, world! {:?}", v);
 
-    v.run();
+    let res = v.run();
+    println!("game result: {:?}", res);
 }

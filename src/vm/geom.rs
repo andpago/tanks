@@ -1,3 +1,5 @@
+use core::cmp;
+
 #[derive(Debug, Clone)]
 pub struct Coords {
     pub x: i64,
@@ -53,5 +55,11 @@ impl Coords {
             Direction::Up => self.y += 1,
             Direction::Down => self.y -= 1,
         }
+    }
+}
+
+impl cmp::PartialEq for Coords {
+    fn eq(self: &Self, other: &Self) -> bool {
+        return self.y == other.y && self.x == other.x
     }
 }
