@@ -6,35 +6,39 @@ mod vm;
 
 use crate::num_traits::ToPrimitive;
 use crate::vm::program::Action::{Fire, Move, Rotate};
-use crate::vm::program::Command::{Halt, JumpA, LoadDirectA, LoadDirectAction, LoadDirectB, Add, SaveA, LoadB, Sub, JumpBIfAPos, LoadA};
-use crate::vm::program::Program;
+use crate::vm::program::Command::{Halt, JumpA, LoadDirectA, LoadDirectAction, LoadDirectB, Add, SaveA, LoadB, Sub, JumpBIfAPos, LoadA, IncA, LogicNegateA};
+use crate::vm::program::{Program, Action};
 use vm::VirtualMachine;
 use crate::vm::geom::Direction;
 
 fn main() {
+    const heap: u8 = 255;
+    const none: u8 = 0;
+
+
     let mut v = VirtualMachine::new(vec!["Hello".into(), "World".into()]);
     let p1: Program = vec![
-        LoadDirectAction.to_u8().unwrap(),
-        Move.into(),
-        Halt.to_u8().unwrap(),
+        LoadA.u8(), heap,
+        LoadDirectB.u8(), 5,
+        Sub.u8(), none,
+        LoadDirectB.u8(), 20,
+        JumpBIfAPos.u8(), none,
+
+        LoadA.u8(), heap,
+        IncA.u8(), none,
+        SaveA.u8(), heap,
+        LoadDirectAction.u8(), Action::Move.into(),
+        Halt.u8(), none,
+
+        LoadDirectAction.u8(), Action::Fire.into(),
+        Halt.u8(), none,
     ];
 
     v.input(p1.clone(), "Hello".into()).unwrap();
-    const t: u8 = 255;
     v.input(
         vec![
-            LoadA.to_u8().unwrap(), t,
-            LoadDirectB.to_u8().unwrap(), 1,
-            Add.to_u8().unwrap(), 0,
-            SaveA.to_u8().unwrap(), t,
-            LoadDirectB.to_u8().unwrap(), 20,
-            Sub.to_u8().unwrap(), 0,
-            LoadDirectB.to_u8().unwrap(), 20,
-            JumpBIfAPos.to_u8().unwrap(), 20,
-            LoadDirectA.to_u8().unwrap(), 0,
-            JumpA.to_u8().unwrap(), 6,
-            LoadDirectAction.to_u8().unwrap(), Rotate(Direction::Left).into(),
-            Halt.to_u8().unwrap()
+            LoadDirectAction.u8(), Move.into(),
+            Halt.u8()
         ],
         "World".into(),
     )

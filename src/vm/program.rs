@@ -35,19 +35,27 @@ impl Action {
 
 #[derive(Copy, Clone, Debug, Primitive)]
 pub enum Command {
-    LoadDirectA = 0,      // loads <arg> into a
-    LoadDirectB = 1,      // loads <arg> into b
-    LoadDirectAction = 2, // loads
+    LoadDirectA = 0,      // loads <arg> into A
+    LoadDirectB = 1,      // loads <arg> into B
+    LoadDirectAction = 2, // loads <arg> into action register
     Halt = 3,             // halts program execution
     LogicNegateA = 4,     // turns 0 into 1 and anything else into 0
-    Add = 5,              // adds a and b and puts into a
-    SaveA = 6,            // saves a into memory cell at <arg>
-    LoadA = 7,            // loads value at address <arg> into a
-    LoadB = 8,            // loads value at address <arg> into b
-    SwapAB = 9,           // swaps a and b,
-    JumpA = 10,           // sets instruction register to the value of a
-    JumpBIfAPos = 11, // jump to <arg> if a is not zero
-    Sub = 12 // subtract b from a
+    Add = 5,              // adds A and B and puts result into A
+    SaveA = 6,            // saves A into memory cell at <arg>
+    LoadA = 7,            // loads value at address <arg> into A
+    LoadB = 8,            // loads value at address <arg> into B
+    SwapAB = 9,           // swaps A and B,
+    JumpA = 10,           // sets instruction register to the value of A
+    JumpBIfAPos = 11, // jump to <arg> if A is not zero
+    Sub = 12, // subtract B from A,
+    IncA = 13, // increment A register
+    DecA = 14 // decrement A register
+}
+
+impl Command {
+    pub fn u8(self: &Self) -> u8 {
+        self.to_u8().unwrap()
+    }
 }
 
 pub type Program = Vec<u8>;

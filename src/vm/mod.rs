@@ -110,6 +110,16 @@ fn execute_command(
             } else {
                 regs.a = 0;
             }
+        },
+        Command::IncA => {
+            if regs.a < 255 {
+                regs.a += 1
+            }
+        },
+        Command::DecA => {
+            if regs.a > 0 {
+                regs.a -= 1
+            }
         }
     };
     Ok(false)
@@ -138,18 +148,14 @@ impl VirtualMachine {
 
     fn exec_action(self: &mut Self, action: &Action, player: usize) {
         const DAMAGE: i64 = 10;
+        println!("player {} does {:?}", player, action);
 
         let pos = self.tanks[player].pos.clone();
         match action {
             Action::Move => {
-                println!(
-                    "player {} moves from {:?} to the {:?}",
-                    player, &self.tanks[player].pos, &self.tanks[player].dir
-                );
                 self.tanks[player].step();
             }
             Action::Rotate(rot) => {
-                println!("player {} rotates to the {:?}", player, rot);
                 self.tanks[player].dir = self.tanks[player].dir.rotate(&rot);
             }
             Action::Fire => {
@@ -215,6 +221,7 @@ impl VirtualMachine {
                 }
             };
         }
+//        println!("{} => {:?}", regs.action, Action::from_u8(regs.action));
 
         match Action::from_u8(regs.action) {
             Ok(action) => Ok(action),
@@ -242,6 +249,7 @@ impl VirtualMachine {
             }
 
             for (player, action) in acts.iter().enumerate() {
+//                println!("{:?}", self.memory[player]);
                 if !self.tanks[player].alive() {
                     continue;
                 }
