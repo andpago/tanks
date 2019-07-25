@@ -5,8 +5,8 @@ extern crate num_traits;
 mod vm;
 
 use crate::num_traits::ToPrimitive;
-use crate::vm::program::Action::{Fire, Move, Rotate};
-use crate::vm::program::Command::{Halt, JumpA, LoadDirectA, LoadDirectAction, LoadDirectB, Add, SaveA, LoadB, Sub, JumpBIfAPos, LoadA, IncA, LogicNegateA};
+use crate::vm::program::Action::*;
+use crate::vm::program::Command::*;
 use crate::vm::program::{Program, Action};
 use vm::VirtualMachine;
 use crate::vm::geom::Direction;

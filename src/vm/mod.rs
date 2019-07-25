@@ -5,10 +5,12 @@ use crate::vm::program::{Action, Command, Program};
 use crate::vm::tank::Tank;
 use crate::vm::RuntimeErr::{InvalidAction, OutOfTime, PtrOutOfRange, UnknownCommand};
 use std::fmt::Debug;
+use crate::vm::report::{WinStatus, Shot, Report};
 
 pub mod geom;
-mod memory;
 pub mod program;
+pub mod report;
+mod memory;
 mod tank;
 
 const MAX_STEPS: i64 = 256;
@@ -229,10 +231,16 @@ impl VirtualMachine {
         }
     }
 
-    pub fn run(self: &mut Self) -> Vec<WinStatus> {
+    pub fn run(self: &mut Self) -> Report {
         const MAX_TURNS: i64 = 10;
 
+        let mut shots = vec![];
+
         for _ in 0..MAX_TURNS {
+            shots.push(Shot{
+                players: self.tanks.clone(),
+            });
+            
             let mut acts: Vec<Action> = Vec::new();
 
             for player in 0..self.players.len() {
@@ -278,20 +286,26 @@ impl VirtualMachine {
         let dead: usize = self.tanks.len() - alive;
 
         if alive == 0 || dead == 0 {
-            return vec![WinStatus::Draw; self.tanks.len()];
+            return Report {
+                player_names: self.players.clone(),
+                match_results: vec![WinStatus::Draw; self.tanks.len()],
+                replay: shots,
+            };
         }
 
         if alive == 1 {
-            return self.tanks.iter().map(|x|if x.alive() {WinStatus::Won} else {WinStatus::Lost}).collect();
+            return Report {
+                player_names: self.players.clone(),
+                match_results: self.tanks.iter().map(|x|if x.alive() {WinStatus::Won} else {WinStatus::Lost}).collect(),
+                replay: shots,
+            };
         }
 
-        self.tanks.iter().map(|x|if x.alive() {WinStatus::Draw} else {WinStatus::Lost}).collect()
+        let wins = self.tanks.iter().map(|x|if x.alive() {WinStatus::Draw} else {WinStatus::Lost}).collect();
+        Report {
+            player_names: self.players.clone(),
+            match_results: wins,
+            replay: shots,
+        }
     }
-}
-
-#[derive(Clone, Debug)]
-pub enum WinStatus {
-    Won,
-    Lost,
-    Draw
 }
