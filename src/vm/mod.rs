@@ -1,10 +1,9 @@
-use crate::num_traits::{FromPrimitive, ToPrimitive};
+use crate::num_traits::{FromPrimitive};
 use crate::vm::geom::{Coords, Direction};
 use crate::vm::memory::Memory;
 use crate::vm::program::{Action, Command, Program};
 use crate::vm::tank::Tank;
 use crate::vm::RuntimeErr::{InvalidAction, OutOfTime, PtrOutOfRange, UnknownCommand};
-use std::fmt::Debug;
 use crate::vm::report::{WinStatus, Shot, Report};
 
 pub mod geom;
@@ -188,7 +187,7 @@ impl VirtualMachine {
         let mut regs = Registers::new();
         let mut time = 0;
 
-        let mut mem = &mut self.memory[idx];
+        let mem = &mut self.memory[idx];
 
         loop {
             time += 1;

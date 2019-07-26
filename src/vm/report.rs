@@ -1,7 +1,4 @@
 use crate::vm::tank::Tank;
-use std::fmt::{Debug, Formatter};
-use std::fmt;
-
 
 #[derive(Clone, Debug)]
 pub enum WinStatus {

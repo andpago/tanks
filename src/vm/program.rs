@@ -1,8 +1,6 @@
-use crate::num_traits::{FromPrimitive, ToPrimitive};
+use crate::num_traits::{ToPrimitive};
 use crate::vm::geom::Direction;
 use crate::vm::program::Action::{Fire, Move, Rotate};
-use crate::vm::program::Command::{Halt, LoadDirectA, LoadDirectAction, LoadDirectB};
-use crate::vm::program::Direction::{Left, Right};
 
 // Actions will be placed into the action register
 #[derive(Debug)]

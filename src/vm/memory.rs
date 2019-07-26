@@ -16,10 +16,6 @@ impl Memory {
         }
     }
 
-    pub fn len(self: &Self) -> usize {
-        self.memory.len()
-    }
-
     pub fn get_item(self: &Self, idx: usize) -> Result<u8, ()> {
         if idx >= MEMSIZE {
             Err(())
