@@ -1,4 +1,4 @@
-use crate::vm::tank::Tank;
+use crate::tank::Tank;
 use alloc::vec::Vec;
 use alloc::string::String;
 

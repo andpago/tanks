@@ -1,4 +1,4 @@
-use crate::vm::geom::{Coords, Direction};
+use crate::geom::{Coords, Direction};
 
 #[derive(Clone, Debug)]
 pub struct Tank {

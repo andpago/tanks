@@ -1,10 +1,18 @@
+#![no_std]
+
+#[macro_use]
+extern crate enum_primitive_derive;
+extern crate num_traits;
+#[macro_use]
+extern crate alloc;
+
 use crate::num_traits::{FromPrimitive};
-use crate::vm::geom::{Coords, Direction};
-use crate::vm::memory::Memory;
-use crate::vm::program::{Action, Command, Program};
-use crate::vm::tank::Tank;
-use crate::vm::RuntimeErr::{InvalidAction, OutOfTime, PtrOutOfRange, UnknownCommand};
-use crate::vm::report::{WinStatus, Shot, Report};
+use crate::geom::{Coords, Direction};
+use crate::memory::Memory;
+use crate::program::{Action, Command, Program};
+use crate::tank::Tank;
+use crate::RuntimeErr::{InvalidAction, OutOfTime, PtrOutOfRange, UnknownCommand};
+use crate::report::{WinStatus, Shot, Report};
 use alloc::string::String;
 use alloc::vec::Vec;
 
@@ -151,8 +159,6 @@ impl VirtualMachine {
 
     fn exec_action(self: &mut Self, action: &Action, player: usize) {
         const DAMAGE: i64 = 10;
-        hprintln!("player {} does {:?}", player, action);
-
         let pos = self.tanks[player].pos.clone();
         match action {
             Action::Move => {
@@ -207,9 +213,6 @@ impl VirtualMachine {
                 Err(_) => return Err(PtrOutOfRange),
             };
             let command = Command::from_u8(cmd);
-
-//            hprintln!("{:?} {}, {:?}", command, data, regs);
-
             regs.instruction += INC;
 
             match command {
@@ -224,7 +227,6 @@ impl VirtualMachine {
                 }
             };
         }
-//        hprintln!("{} => {:?}", regs.action, Action::from_u8(regs.action));
 
         match Action::from_u8(regs.action) {
             Ok(action) => Ok(action),
@@ -251,14 +253,12 @@ impl VirtualMachine {
                         acts.push(action);
                     }
                     Err(e) => {
-                        hprintln!("player {} loses with {:?}", player, e);
                         self.tanks[player].hp = 0;
                     }
                 }
             }
 
             for (player, action) in acts.iter().enumerate() {
-//                hprintln!("{:?}", self.memory[player]);
                 if !self.tanks[player].alive() {
                     continue;
                 }

@@ -1,6 +1,6 @@
 use crate::num_traits::{ToPrimitive};
-use crate::vm::geom::Direction;
-use crate::vm::program::Action::{Fire, Move, Rotate};
+use crate::geom::Direction;
+use crate::program::Action::{Fire, Move, Rotate};
 use alloc::vec::Vec;
 
 // Actions will be placed into the action register

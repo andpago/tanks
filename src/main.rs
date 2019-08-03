@@ -1,22 +1,11 @@
-#![no_std]
+extern crate tanks_vm;
 
-#[macro_use]
-extern crate enum_primitive_derive;
-extern crate num_traits;
-#[macro_use]
-extern crate alloc;
-
-#[macro_use]
-extern crate cortex_m_semihosting;
-
-mod vm;
 mod server;
 
-use crate::vm::program::{Program};
-use vm::VirtualMachine;
-use crate::vm::program::Command::*;
-use crate::vm::program::Action::*;
-use cortex_m_semihosting::{hprintln};
+use tanks_vm::program::{Program};
+use tanks_vm::VirtualMachine;
+use tanks_vm::program::Command::*;
+use tanks_vm::program::Action::*;
 
 fn main() {
     const HEAP: u8 = 255;
@@ -51,8 +40,8 @@ fn main() {
     )
     .unwrap();
 
-    hprintln!("Hello, world! {:?}", v);
+    println!("Hello, world! {:?}", v);
 
     let res = v.run();
-    hprintln!("game result: {:?}", res);
+    println!("game result: {:?}", res);
 }
