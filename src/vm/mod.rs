@@ -5,6 +5,8 @@ use crate::vm::program::{Action, Command, Program};
 use crate::vm::tank::Tank;
 use crate::vm::RuntimeErr::{InvalidAction, OutOfTime, PtrOutOfRange, UnknownCommand};
 use crate::vm::report::{WinStatus, Shot, Report};
+use alloc::string::String;
+use alloc::vec::Vec;
 
 pub mod geom;
 pub mod program;
@@ -149,7 +151,7 @@ impl VirtualMachine {
 
     fn exec_action(self: &mut Self, action: &Action, player: usize) {
         const DAMAGE: i64 = 10;
-        println!("player {} does {:?}", player, action);
+        hprintln!("player {} does {:?}", player, action);
 
         let pos = self.tanks[player].pos.clone();
         match action {
@@ -206,7 +208,7 @@ impl VirtualMachine {
             };
             let command = Command::from_u8(cmd);
 
-//            println!("{:?} {}, {:?}", command, data, regs);
+//            hprintln!("{:?} {}, {:?}", command, data, regs);
 
             regs.instruction += INC;
 
@@ -222,7 +224,7 @@ impl VirtualMachine {
                 }
             };
         }
-//        println!("{} => {:?}", regs.action, Action::from_u8(regs.action));
+//        hprintln!("{} => {:?}", regs.action, Action::from_u8(regs.action));
 
         match Action::from_u8(regs.action) {
             Ok(action) => Ok(action),
@@ -249,20 +251,20 @@ impl VirtualMachine {
                         acts.push(action);
                     }
                     Err(e) => {
-                        println!("player {} loses with {:?}", player, e);
+                        hprintln!("player {} loses with {:?}", player, e);
                         self.tanks[player].hp = 0;
                     }
                 }
             }
 
             for (player, action) in acts.iter().enumerate() {
-//                println!("{:?}", self.memory[player]);
+//                hprintln!("{:?}", self.memory[player]);
                 if !self.tanks[player].alive() {
                     continue;
                 }
                 match action {
                     Action::Rotate(_)| Action::Move => {
-                        self.exec_action(action, player)
+                        self.exec_action(&action, player)
                     }
                     _ => {}
                 }
@@ -274,7 +276,7 @@ impl VirtualMachine {
                 }
                 match action {
                     Action::Fire => {
-                        self.exec_action(action, player)
+                        self.exec_action(&action, player)
                     }
                     _ => {}
                 }

@@ -1,6 +1,7 @@
 use crate::num_traits::{ToPrimitive};
 use crate::vm::geom::Direction;
 use crate::vm::program::Action::{Fire, Move, Rotate};
+use alloc::vec::Vec;
 
 // Actions will be placed into the action register
 #[derive(Debug)]
@@ -24,7 +25,7 @@ impl Action {
     pub fn from_u8(bt: u8) -> Result<Self, ()> {
         match bt {
             1 => Ok(Move),
-           2...5 => Ok(Rotate(Direction::from(bt - 2))),
+           2..=5 => Ok(Rotate(Direction::from(bt - 2))),
             6 => Ok(Fire),
             _ => Err(()),
         }

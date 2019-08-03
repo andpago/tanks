@@ -1,4 +1,6 @@
 use crate::vm::tank::Tank;
+use alloc::vec::Vec;
+use alloc::string::String;
 
 #[derive(Clone, Debug)]
 pub enum WinStatus {

@@ -1,5 +1,6 @@
 use core::fmt;
-use std::fmt::Debug;
+use core::fmt::Debug;
+use alloc::vec::Vec;
 
 // bot memory size in bytes
 pub const MEMSIZE: usize = 256;
